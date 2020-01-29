@@ -11,14 +11,26 @@ const checkProjectExists = (req, res, next) => {
     res.json({ message: "Project doesn't exists" });
   }
 
-  return next();
+  next();
+};
+
+const checkRequiredFields = (req, res, next) => {
+  if (!req.body.id) {
+    return res.json({ message: "Project Id is required" });
+  }
+
+  if (!req.body.title) {
+    return res.json({ message: "Project Title is required" });
+  }
+
+  next();
 };
 
 routes.get("/projects", (req, res) => {
   res.json(projects);
 });
 
-routes.post("/projects", (req, res) => {
+routes.post("/projects", checkRequiredFields, (req, res) => {
   const { id, title } = req.body;
   projects.push({ id, title, tasks: [] });
 
@@ -41,11 +53,11 @@ routes.put("/projects/:id", checkProjectExists, (req, res) => {
 });
 
 routes.delete("/projects/:id", checkProjectExists, (req, res) => {
-  projects = projects.filter(project => {
-    return project.id !== req.params.id;
-  });
+  const projectIndex = projects.findIndex(({ id }) => id === req.params.id);
 
-  res.send(projects);
+  projects.splice(projectIndex, 1);
+
+  res.send();
 });
 
 routes.post("/projects/:id/tasks", checkProjectExists, (req, res) => {
